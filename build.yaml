@@ -1,0 +1,22 @@
+---
+# Plugin manifest for the Jellyfin Plugin Repository Manager (JPRM).
+# See https://github.com/jellyfin/jellyfin-plugin-repository-manager
+name: "Duration Filter"
+guid: "957ba055-7b9a-4191-972a-59879fd73ee3"
+version: "0.1.0.0"
+targetAbi: "10.10.0.0"
+framework: "net8.0"
+overview: "Adds a Min/Max runtime filter (in minutes) to the library filter panel."
+description: >
+  Duration Filter injects a "Min duration" and "Max duration" control (in minutes)
+  into the jellyfin-web library filter panel. It composes with all other active
+  filters and the current sort order, so you can browse, for example, the newest
+  movies under 60 minutes without leaving the normal library view. Filtering is
+  done in the browser because the Jellyfin server has no runtime query parameter.
+category: "General"
+owner: "yassinsiouda74"
+artifacts:
+  - "JellyfinPluginDurationFilter.dll"
+changelog: >
+  0.1.0.0 - Initial release. Min/Max runtime filter injected into the library
+  filter panel, per-library persistence, active-filter chip, admin settings page.

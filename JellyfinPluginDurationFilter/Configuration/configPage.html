@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Duration Filter</title>
+</head>
+<body>
+<div id="durationFilterConfigPage"
+     data-role="page"
+     class="page type-interior pluginConfigurationPage"
+     data-require="emby-input,emby-button,emby-checkbox,emby-select">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="durationFilterConfigForm">
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Duration Filter</h2>
+                    <p class="fieldDescription">
+                        Adds a Min/Max runtime filter (in minutes) to the jellyfin-web library
+                        filter panel. Changes take effect after users reload their browser tab.
+                    </p>
+                </div>
+
+                <div class="inputContainer">
+                    <input is="emby-input" type="number" id="DefaultMinMinutes" min="0" step="1"
+                           label="Default minimum (minutes)" />
+                    <div class="fieldDescription">
+                        Pre-fills the "Min minutes" input the first time a library is opened.
+                        0 means no minimum. This only seeds the input; it is not applied automatically.
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <input is="emby-input" type="number" id="DefaultMaxMinutes" min="0" step="1"
+                           label="Default maximum (minutes)" />
+                    <div class="fieldDescription">
+                        Pre-fills the "Max minutes" input. 0 means no maximum.
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <input is="emby-input" type="text" id="EnabledLibraryIds"
+                           label="Enabled library IDs" />
+                    <div class="fieldDescription">
+                        Comma-separated list of library IDs the filter should appear in.
+                        Leave empty to enable it in every video library. You can copy a library's
+                        ID from its URL in the Jellyfin dashboard, or from the address bar while
+                        browsing the library.
+                    </div>
+                </div>
+
+                <label class="checkboxContainer">
+                    <input is="emby-checkbox" type="checkbox" id="ShowChip" />
+                    <span>Show a chip while a duration filter is active</span>
+                </label>
+                <div class="fieldDescription checkboxFieldDescription">
+                    Displays a small "Duration: …" chip with a one-click clear button whenever a
+                    filter is applied to the library being viewed.
+                </div>
+
+                <label class="checkboxContainer">
+                    <input is="emby-checkbox" type="checkbox" id="UseDirectInjectionFallback" />
+                    <span>Patch index.html directly when File Transformation is unavailable</span>
+                </label>
+                <div class="fieldDescription checkboxFieldDescription">
+                    The plugin prefers the
+                    <a is="emby-linkbutton" class="button-link"
+                       href="https://github.com/IAmParadox27/jellyfin-plugin-file-transformation"
+                       target="_blank" rel="noopener">File Transformation plugin</a>
+                    (clean, no file changes). If that plugin is not installed and this box is
+                    checked, the plugin instead edits <code>jellyfin-web/index.html</code> on disk.
+                    Uncheck it if your web root is read-only.
+                </div>
+
+                <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                    <span>Save</span>
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        (function () {
+            var pluginUniqueId = '957ba055-7b9a-4191-972a-59879fd73ee3';
+            var page = document.querySelector('#durationFilterConfigPage');
+
+            function intOrZero(value) {
+                var n = parseInt(value, 10);
+                return isNaN(n) || n < 0 ? 0 : n;
+            }
+
+            page.addEventListener('pageshow', function () {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginUniqueId).then(function (config) {
+                    page.querySelector('#DefaultMinMinutes').value = config.DefaultMinMinutes || 0;
+                    page.querySelector('#DefaultMaxMinutes').value = config.DefaultMaxMinutes || 0;
+                    page.querySelector('#EnabledLibraryIds').value = config.EnabledLibraryIds || '';
+                    page.querySelector('#ShowChip').checked = config.ShowChip !== false;
+                    page.querySelector('#UseDirectInjectionFallback').checked =
+                        config.UseDirectInjectionFallback !== false;
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            page.querySelector('#durationFilterConfigForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginUniqueId).then(function (config) {
+                    config.DefaultMinMinutes = intOrZero(page.querySelector('#DefaultMinMinutes').value);
+                    config.DefaultMaxMinutes = intOrZero(page.querySelector('#DefaultMaxMinutes').value);
+                    config.EnabledLibraryIds = page.querySelector('#EnabledLibraryIds').value.trim();
+                    config.ShowChip = page.querySelector('#ShowChip').checked;
+                    config.UseDirectInjectionFallback =
+                        page.querySelector('#UseDirectInjectionFallback').checked;
+                    ApiClient.updatePluginConfiguration(pluginUniqueId, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
+                });
+                return false;
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

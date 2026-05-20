@@ -1,0 +1,12 @@
+# Build output
+bin/
+obj/
+*.user
+
+# Packaged plugin
+dist/
+*.zip
+
+# IDE
+.vs/
+.idea/
