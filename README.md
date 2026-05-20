@@ -60,6 +60,25 @@ jellyfin-web. The plugin therefore uses, in order of preference:
 
 ## Installation
 
+### Install via the plugin catalog (recommended)
+
+This repository **is** a Jellyfin plugin repository, so the plugin can be
+installed and updated from the dashboard:
+
+1. In Jellyfin, go to **Dashboard → Plugins → Repositories → +** (Add).
+2. Set a **Repository Name** (e.g. `Duration Filter`) and this **Repository URL**:
+   ```
+   https://raw.githubusercontent.com/Pipazoul/jellyfin-filters/main/manifest.json
+   ```
+3. Save, then open **Dashboard → Plugins → Catalog**.
+4. Find **Duration Filter** under the *General* category and click **Install**.
+5. *(Recommended)* Also install the **File Transformation** plugin — see step 3
+   of the manual install below for why.
+6. **Restart Jellyfin**, then reload your browser tab.
+
+Future versions appear in the catalog automatically and can be updated from the
+same screen.
+
 ### Manual install (from a build)
 
 1. Build the plugin (see **Building from source**) or download
@@ -132,9 +151,26 @@ JellyfinPluginDurationFilter/bin/Release/net8.0/JellyfinPluginDurationFilter.dll
 
 Copy that DLL into your Jellyfin plugins directory as described above.
 
-> `build.yaml` is included for packaging with the
-> [Jellyfin Plugin Repository Manager (JPRM)](https://github.com/jellyfin/jellyfin-plugin-repository-manager)
-> if you want to publish this through a plugin repository.
+### Packaging & releasing
+
+To produce an installable zip locally:
+
+```bash
+build/package.sh 0.1.0.0        # -> dist/duration-filter-0.1.0.0.zip (+ MD5)
+```
+
+To publish a new catalog version, bump the number and **push a tag from
+`main`'s HEAD**:
+
+```bash
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+The [`Release plugin`](.github/workflows/release.yml) GitHub Action then builds
+the zip, attaches it to a GitHub Release, and updates `manifest.json` — so the
+new version shows up in everyone's plugin catalog. `build.yaml` is also included
+for the [Jellyfin Plugin Repository Manager](https://github.com/jellyfin/jellyfin-plugin-repository-manager)
+if you prefer that toolchain.
 
 ---
 

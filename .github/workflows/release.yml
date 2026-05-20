@@ -1,0 +1,93 @@
+name: Release plugin
+
+# Publishes a new plugin version: builds the zip, attaches it to a GitHub
+# Release, and updates manifest.json (the catalog file) on main.
+#
+# Trigger by pushing a tag like `v0.2.0` from main's HEAD, or run manually.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Plugin version, 4-part (e.g. 0.2.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Determine version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            V="${{ github.event.inputs.version }}"
+          else
+            V="${GITHUB_REF_NAME#v}"
+            case "$V" in *.*.*.*) ;; *) V="$V.0" ;; esac
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "tag=v$V" >> "$GITHUB_OUTPUT"
+
+      - name: Build and package
+        run: bash build/package.sh "${{ steps.ver.outputs.version }}"
+
+      - name: Collect package outputs
+        id: pkg
+        run: |
+          echo "checksum=$(cat dist/checksum.txt)" >> "$GITHUB_OUTPUT"
+          echo "zip=$(cat dist/zippath.txt)" >> "$GITHUB_OUTPUT"
+          echo "zipname=$(basename "$(cat dist/zippath.txt)")" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          ZIP="${{ steps.pkg.outputs.zip }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" --clobber
+          else
+            gh release create "$TAG" "$ZIP" \
+              --title "$TAG" \
+              --notes "Automated release of Duration Filter ${{ steps.ver.outputs.version }}."
+          fi
+
+      - name: Update catalog manifest
+        run: |
+          SRC="https://github.com/${{ github.repository }}/releases/download/${{ steps.ver.outputs.tag }}/${{ steps.pkg.outputs.zipname }}"
+          TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          python3 build/update-manifest.py \
+            "${{ steps.ver.outputs.version }}" \
+            "${{ steps.pkg.outputs.checksum }}" \
+            "$SRC" \
+            "Automated release. See the GitHub release notes." \
+            "$TS"
+
+      - name: Commit manifest.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          if git diff --cached --quiet; then
+            echo "manifest.json unchanged"
+          else
+            git commit -m "Update plugin catalog for ${{ steps.ver.outputs.tag }}"
+            git push origin HEAD:main
+          fi
