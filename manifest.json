@@ -9,11 +9,11 @@
     "versions": [
       {
         "version": "0.1.0.0",
-        "changelog": "Initial release: Min/Max runtime filter injected into the library filter panel, per-library persistence, active-filter chip, admin settings page.",
+        "changelog": "Automated release. See the GitHub release notes.",
         "targetAbi": "10.10.0.0",
-        "sourceUrl": "https://github.com/Pipazoul/jellyfin-filters/releases/download/v0.1.0/duration-filter-0.1.0.0.zip",
-        "checksum": "10b3ff0b662b0f1470ee0887d949d7b9",
-        "timestamp": "2026-05-20T18:53:13Z"
+        "sourceUrl": "https://github.com/Pipazoul/jellyfin-filters/releases/download/v0.1.0.0/duration-filter-0.1.0.0.zip",
+        "checksum": "0653026d2d55041f96e21e0096aa04e5",
+        "timestamp": "2026-05-20T18:55:14Z"
       }
     ]
   }
