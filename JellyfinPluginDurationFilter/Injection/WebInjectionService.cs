@@ -181,8 +181,15 @@ namespace JellyfinPluginDurationFilter.Injection
             {
                 ["id"] = TransformationId,
 
-                // Matched (as a regex) against the served file path.
-                ["fileNamePattern"] = "index\\.html",
+                // The File Transformation plugin keys its transformation pipeline by this
+                // string. It first does an *exact* dictionary lookup on the requested path
+                // and only treats keys as regexes when no exact key matches. jellyfin-web
+                // requests its document as exactly "index.html", so this MUST be the literal
+                // "index.html": an escaped-regex form such as "index\.html" becomes a
+                // separate key that loses the exact-match lookup to any other plugin that
+                // registered the literal string (e.g. Jellyfin Enhanced), and our
+                // transformation would then never run.
+                ["fileNamePattern"] = "index.html",
 
                 ["callbackAssembly"] = assembly.FullName,
                 ["callbackClass"] = typeof(IndexHtmlTransformer).FullName,

@@ -6,7 +6,8 @@ the jellyfin-web library filter panel. It composes with every other active filte
 things like *"newest movies under 60 minutes"* without leaving the normal library
 view. The filter works in any video library and supports both movies and episodes.
 
-> **Status:** `0.1.0` — first release. Targets the Jellyfin **10.10.x** plugin ABI
+> **Status:** `0.1.1` — injection fix for coexistence with other File
+> Transformation consumers. Targets the Jellyfin **10.10.x** plugin ABI
 > (`net8.0`, `Jellyfin.Controller` 10.10.6).
 
 ---
