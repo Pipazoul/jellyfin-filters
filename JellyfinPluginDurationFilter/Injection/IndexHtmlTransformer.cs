@@ -42,21 +42,35 @@ namespace JellyfinPluginDurationFilter.Injection
             RegexOptions.Singleline | RegexOptions.Compiled);
 
         /// <summary>
-        /// File Transformation plugin callback. Receives the current <c>index.html</c>,
-        /// returns it with the Duration Filter client assets injected before <c>&lt;/body&gt;</c>.
+        /// File Transformation plugin callback. Receives a file's current contents and,
+        /// when it is the jellyfin-web <c>index.html</c> document, returns it with the
+        /// Duration Filter client assets injected before <c>&lt;/body&gt;</c>.
         /// </summary>
         /// <param name="payload">The transformation payload supplied by the File Transformation plugin.</param>
-        /// <returns>The transformed HTML.</returns>
+        /// <returns>The transformed HTML, or the input unchanged if it is not an HTML document.</returns>
         public static string TransformIndexHtml(IndexHtmlPayload payload)
         {
+            var contents = payload?.Contents ?? string.Empty;
             try
             {
-                return InjectInto(payload?.Contents ?? string.Empty);
+                // The File Transformation plugin matches our file-name pattern as a
+                // regex, and in "index.html" the '.' is a wildcard - so it also routes
+                // webpack chunks whose name contains "index-html" here, e.g.
+                // jellyfin-web's video player chunk
+                // "playback-video-index-html.<hash>.chunk.js". Those are JavaScript:
+                // only ever transform a genuine HTML document, otherwise we would
+                // append our <script>/<style> block to a JS file and break it.
+                if (!LooksLikeHtmlDocument(contents))
+                {
+                    return contents;
+                }
+
+                return InjectInto(contents);
             }
             catch (Exception)
             {
                 // Never break the page: if anything goes wrong, return the original markup.
-                return payload?.Contents ?? string.Empty;
+                return contents;
             }
         }
 
@@ -78,11 +92,12 @@ namespace JellyfinPluginDurationFilter.Injection
 
             var block = BuildInjectionBlock();
 
-            // Insert just before the last </body>, falling back to append.
+            // Insert just before the last </body>. Content with no </body> is not a
+            // document we recognise - return it untouched rather than appending markup.
             var bodyIndex = html.LastIndexOf("</body>", StringComparison.OrdinalIgnoreCase);
             if (bodyIndex < 0)
             {
-                return html + block;
+                return html;
             }
 
             return html.Substring(0, bodyIndex) + block + html.Substring(bodyIndex);
@@ -152,6 +167,27 @@ namespace JellyfinPluginDurationFilter.Injection
             };
 
             return JsonSerializer.Serialize(payload);
+        }
+
+        /// <summary>
+        /// Determines whether the supplied content is an HTML document, as opposed to a
+        /// JavaScript or CSS asset that the File Transformation plugin routed here via a
+        /// loose regex match. A genuine document starts with a doctype or an
+        /// <c>&lt;html&gt;</c> tag; a webpack bundle starts with JavaScript even when it
+        /// embeds HTML template strings further in.
+        /// </summary>
+        /// <param name="content">The content to inspect.</param>
+        /// <returns><c>true</c> if the content looks like an HTML document.</returns>
+        private static bool LooksLikeHtmlDocument(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return false;
+            }
+
+            var trimmed = content.TrimStart();
+            return trimmed.StartsWith("<!doctype", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("<html", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
