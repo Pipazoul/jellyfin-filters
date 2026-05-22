@@ -8,6 +8,14 @@
     "guid": "957ba055-7b9a-4191-972a-59879fd73ee3",
     "versions": [
       {
+        "version": "0.1.2.0",
+        "changelog": "Automated release. See the GitHub release notes.",
+        "targetAbi": "10.10.0.0",
+        "sourceUrl": "https://github.com/Pipazoul/jellyfin-filters/releases/download/v0.1.2.0/duration-filter-0.1.2.0.zip",
+        "checksum": "c1b5405f27c6f8833f3c354a9edc13b1",
+        "timestamp": "2026-05-22T06:52:58Z"
+      },
+      {
         "version": "0.1.1.0",
         "changelog": "Automated release. See the GitHub release notes.",
         "targetAbi": "10.10.0.0",
