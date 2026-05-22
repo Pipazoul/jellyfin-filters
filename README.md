@@ -6,9 +6,8 @@ the jellyfin-web library filter panel. It composes with every other active filte
 things like *"newest movies under 60 minutes"* without leaving the normal library
 view. The filter works in any video library and supports both movies and episodes.
 
-> **Status:** `0.1.1` — injection fix for coexistence with other File
-> Transformation consumers. Targets the Jellyfin **10.10.x** plugin ABI
-> (`net8.0`, `Jellyfin.Controller` 10.10.6).
+> **Status:** `0.1.2` — removes the active-filter chip. Targets the Jellyfin
+> **10.10.x** plugin ABI (`net8.0`, `Jellyfin.Controller` 10.10.6).
 
 ---
 
@@ -114,7 +113,6 @@ same screen.
 | **Default minimum (minutes)** | Pre-fills the "Min" input the first time a library is opened. `0` = no minimum. Not applied automatically. |
 | **Default maximum (minutes)** | Pre-fills the "Max" input. `0` = no maximum. |
 | **Enabled library IDs** | Comma-separated library IDs the filter appears in. Empty = every video library. |
-| **Show chip while active** | Shows a "Duration: …" chip with a one-click clear button while a filter is applied. |
 | **Patch index.html directly** | Allows the on-disk fallback when the File Transformation plugin is absent. Uncheck for read-only web roots. |
 
 Configuration changes take effect after users **reload their browser tab**.
@@ -128,8 +126,7 @@ Configuration changes take effect after users **reload their browser tab**.
    and/or **Max** value (`0` or blank = no limit).
 3. Click **Apply**. The view reloads with the duration filter applied on top of all
    other filters and the current sort.
-4. A chip (bottom-left) shows the active range; click **✕** on the chip — or
-   **Clear** in the filter panel — to remove it.
+4. To remove the filter, click **Clear** in the filter panel.
 
 The chosen range is stored in `localStorage` **per library**, so it survives
 navigation until you clear it.
@@ -190,7 +187,7 @@ running Jellyfin instance. With the plugin installed and the browser tab reloade
 - [ ] Combining with a genre or year filter narrows results correctly.
 - [ ] Sort order (e.g. *Date Added, Descending*) is preserved while filtering.
 - [ ] The item count / pager reflects the filtered total, and paging works.
-- [ ] Clearing the filter (chip **✕** or **Clear**) restores normal behaviour.
+- [ ] Clearing the filter with **Clear** restores normal behaviour.
 - [ ] No console errors on pages without a filter panel (home, item details).
 
 ---
@@ -219,9 +216,9 @@ Items with an unknown runtime are excluded while a filter is active.
 
 <!-- Add screenshots here once captured against a running instance. -->
 
-| Filter panel section | Active-filter chip | Admin settings |
-| --- | --- | --- |
-| _screenshot placeholder_ | _screenshot placeholder_ | _screenshot placeholder_ |
+| Filter panel section | Admin settings |
+| --- | --- |
+| _screenshot placeholder_ | _screenshot placeholder_ |
 
 ---
 

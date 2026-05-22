@@ -3,7 +3,7 @@
 # See https://github.com/jellyfin/jellyfin-plugin-repository-manager
 name: "Duration Filter"
 guid: "957ba055-7b9a-4191-972a-59879fd73ee3"
-version: "0.1.1.0"
+version: "0.1.2.0"
 targetAbi: "10.10.0.0"
 framework: "net8.0"
 overview: "Adds a Min/Max runtime filter (in minutes) to the library filter panel."
@@ -18,8 +18,6 @@ owner: "yassinsiouda74"
 artifacts:
   - "JellyfinPluginDurationFilter.dll"
 changelog: >
-  0.1.1.0 - Fix: the injected client script now loads when the File Transformation
-  plugin is used alongside another plugin that also transforms index.html (e.g.
-  Jellyfin Enhanced). The transformation was registered with an escaped-regex file
-  pattern ("index\.html") that lost File Transformation's exact-match lookup, so the
-  callback was never invoked; it now registers the literal "index.html".
+  0.1.2.0 - Remove the active-filter chip (the position:fixed badge shown while a
+  duration filter was active) and its ShowChip setting. As a fixed overlay it could
+  sit on top of other UI, including the video player controls.
