@@ -27,12 +27,6 @@ namespace JellyfinPluginDurationFilter.Configuration
         public string EnabledLibraryIds { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets a value indicating whether a small chip is shown while a duration
-        /// filter is active, giving the user a one-click way to clear it.
-        /// </summary>
-        public bool ShowChip { get; set; } = true;
-
-        /// <summary>
         /// Gets or sets a value indicating whether the plugin may patch
         /// <c>jellyfin-web/index.html</c> directly on disk when the File Transformation
         /// plugin is not installed. Disable this if your web root is read-only.

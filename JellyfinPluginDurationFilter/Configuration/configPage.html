@@ -50,15 +50,6 @@
                 </div>
 
                 <label class="checkboxContainer">
-                    <input is="emby-checkbox" type="checkbox" id="ShowChip" />
-                    <span>Show a chip while a duration filter is active</span>
-                </label>
-                <div class="fieldDescription checkboxFieldDescription">
-                    Displays a small "Duration: …" chip with a one-click clear button whenever a
-                    filter is applied to the library being viewed.
-                </div>
-
-                <label class="checkboxContainer">
                     <input is="emby-checkbox" type="checkbox" id="UseDirectInjectionFallback" />
                     <span>Patch index.html directly when File Transformation is unavailable</span>
                 </label>
@@ -96,7 +87,6 @@
                     page.querySelector('#DefaultMinMinutes').value = config.DefaultMinMinutes || 0;
                     page.querySelector('#DefaultMaxMinutes').value = config.DefaultMaxMinutes || 0;
                     page.querySelector('#EnabledLibraryIds').value = config.EnabledLibraryIds || '';
-                    page.querySelector('#ShowChip').checked = config.ShowChip !== false;
                     page.querySelector('#UseDirectInjectionFallback').checked =
                         config.UseDirectInjectionFallback !== false;
                     Dashboard.hideLoadingMsg();
@@ -110,7 +100,6 @@
                     config.DefaultMinMinutes = intOrZero(page.querySelector('#DefaultMinMinutes').value);
                     config.DefaultMaxMinutes = intOrZero(page.querySelector('#DefaultMaxMinutes').value);
                     config.EnabledLibraryIds = page.querySelector('#EnabledLibraryIds').value.trim();
-                    config.ShowChip = page.querySelector('#ShowChip').checked;
                     config.UseDirectInjectionFallback =
                         page.querySelector('#UseDirectInjectionFallback').checked;
                     ApiClient.updatePluginConfiguration(pluginUniqueId, config).then(function (result) {

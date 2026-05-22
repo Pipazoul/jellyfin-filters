@@ -148,7 +148,6 @@ namespace JellyfinPluginDurationFilter.Injection
                 ["defaultMin"] = Math.Max(0, config.DefaultMinMinutes),
                 ["defaultMax"] = Math.Max(0, config.DefaultMaxMinutes),
                 ["enabledLibraryIds"] = enabledLibraries,
-                ["showChip"] = config.ShowChip,
                 ["version"] = typeof(IndexHtmlTransformer).Assembly.GetName().Version?.ToString() ?? "0.0.0",
             };
 

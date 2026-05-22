@@ -24,7 +24,6 @@
     var CFG = window.__JELLYFIN_DURATION_FILTER__ || {};
     var TICKS_PER_MINUTE = 600000000; // 1 minute = 600,000,000 ticks (1 tick = 100 ns)
     var STORAGE_PREFIX = 'jf-duration-filter:';
-    var CHIP_ID = 'duration-filter-chip';
     var CACHE_TTL_MS = 30000;
     var LOG = '[DurationFilter]';
 
@@ -127,11 +126,57 @@
         }
     }
 
+    /**
+     * Refreshes the current library grid after a duration filter changes.
+     *
+     * Preferred: re-query the view *in place* so the active library tab, the
+     * page route and the open filter panel are all preserved. jellyfin-web has
+     * no public "reload items" call, but its filter dialog reloads the grid
+     * whenever one of its own filter controls fires a `change` event. We
+     * dispatch `change` on a control whose change handler is a no-op while its
+     * state is unchanged (`.chk3DFilter`/`.chk4KFilter` set `x ? true : null`,
+     * `.chkStandardFilter` rebuilds an identical list), so jellyfin-web re-runs
+     * the query with *its* filters untouched and our fetch/XHR hook layers the
+     * duration filter on top.
+     *
+     * Fallback: a full page reload - used when no filter panel is open (e.g.
+     * clearing from the chip). It works but resets the library to its first tab.
+     */
     function reloadView() {
+        if (requeryInPlace()) {
+            return;
+        }
         try {
             window.location.reload();
         } catch (e) {
             warn('reload failed', e);
+        }
+    }
+
+    /**
+     * Tries to reload just the library grid through jellyfin-web's own filter
+     * machinery, leaving the active tab and route intact.
+     * @returns {boolean} True on success; false if the caller should reload.
+     */
+    function requeryInPlace() {
+        try {
+            var dialog = document.querySelector('.filterDialog');
+            if (!dialog) {
+                return false; // no panel open - nothing to drive the re-query
+            }
+            // These controls map their checkbox state straight onto jellyfin's
+            // query, so dispatching `change` without flipping `checked` leaves
+            // that query identical - jellyfin-web simply re-runs it.
+            var trigger = dialog.querySelector('.chk3DFilter, .chk4KFilter, .chkStandardFilter');
+            if (!trigger) {
+                return false;
+            }
+            trigger.dispatchEvent(new Event('change', { bubbles: true }));
+            log('re-queried current view in place');
+            return true;
+        } catch (e) {
+            warn('in-place re-query failed, falling back to reload', e);
+            return false;
         }
     }
 
@@ -424,19 +469,6 @@
     }
 
     // ===================================================== filter-dialog UI
-    function describeFilter(f) {
-        if (f.min > 0 && f.max > 0) {
-            return f.min + '–' + f.max + ' min';
-        }
-        if (f.min > 0) {
-            return '≥ ' + f.min + ' min';
-        }
-        if (f.max > 0) {
-            return '≤ ' + f.max + ' min';
-        }
-        return '';
-    }
-
     function buildDialogSection(libId) {
         var existing = getFilter(libId);
         var minVal = existing ? existing.min : toInt(CFG.defaultMin);
@@ -548,53 +580,6 @@
         }
     }
 
-    // ============================================================= the chip
-    function removeChip() {
-        var chip = document.getElementById(CHIP_ID);
-        if (chip) {
-            chip.remove();
-        }
-    }
-
-    function refreshChip() {
-        try {
-            if (!CFG.showChip) {
-                removeChip();
-                return;
-            }
-            var libId = currentLibraryId();
-            var filter = (libId && libraryEnabled(libId)) ? getFilter(libId) : null;
-            if (!filter) {
-                removeChip();
-                return;
-            }
-
-            var chip = document.getElementById(CHIP_ID);
-            if (!chip) {
-                chip = document.createElement('div');
-                chip.id = CHIP_ID;
-                chip.className = 'df-chip';
-                chip.innerHTML =
-                    '<span class="df-chip-icon" aria-hidden="true">⏱</span>'
-                    + '<span class="df-chip-label"></span>'
-                    + '<button type="button" class="df-chip-clear" title="Clear duration filter" '
-                    + 'aria-label="Clear duration filter">✕</button>';
-                chip.querySelector('.df-chip-clear').addEventListener('click', function () {
-                    var id = chip.__libId;
-                    if (id) {
-                        clearFilter(id);
-                        reloadView();
-                    }
-                });
-                document.body.appendChild(chip);
-            }
-            chip.__libId = libId;
-            chip.querySelector('.df-chip-label').textContent = 'Duration: ' + describeFilter(filter);
-        } catch (e) {
-            warn('chip refresh failed', e);
-        }
-    }
-
     // ================================================================= init
     function init() {
         installFetchHook();
@@ -603,8 +588,6 @@
         function onReady() {
             try {
                 watchForFilterDialog();
-                refreshChip();
-                window.addEventListener('hashchange', refreshChip);
             } catch (e) {
                 warn('UI init failed', e);
             }
